@@ -1,0 +1,37 @@
+# =============================================================================
+# R12 - Robustez à semente da floresta
+# -----------------------------------------------------------------------------
+# !!! RODAR SÓ DEPOIS DO TESTE FINAL (R10). NÃO MUDA A ESCOLHA DO MODELO. !!!
+#
+# Pergunta: o resultado depende da semente aleatória da floresta?
+# Objetivo: repetir o vencedor com outras 5 sementes (random_state da floresta).
+#           Os folds do CV e os CVs internos do limiar/calibração continuam com
+#           a SEED 42: só o sorteio das árvores muda.
+# Depois de rodar:
+#   python stability.py --run <vencedor> --run-dt <vencedor do DT> --seeds R12_
+#   (mostra o roc_auc de cada semente e se a ordem das variáveis se mantém)
+#
+# Atualizar antes de rodar:
+# - Todo o baseline: igual ao vencedor final (R9).
+# - O override de model: repita o model do baseline (a semente entra pelo sweep).
+# =============================================================================
+
+baseline_name: R12_baseline
+
+baseline:
+  zeros: to_nan                               # ATUALIZAR: vencedor final
+  missing_flags: none                         # ATUALIZAR: vencedor final
+  imputer: median                             # ATUALIZAR: vencedor final
+  features: none                              # ATUALIZAR: vencedor final
+  selection: none
+  balancing: none                             # ATUALIZAR: vencedor final
+  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedor final
+  # threshold: {name: tuned, scoring: f1}     # ATUALIZAR: vencedor final (descomente se tiver)
+  # calibration: sigmoid                      # ATUALIZAR: vencedor final (descomente se tiver)
+
+experiments:
+  - name: R12_sementes
+    override:
+      model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: model do vencedor final
+    sweep:
+      model.random_state: [1, 7, 123, 2024, 31415]

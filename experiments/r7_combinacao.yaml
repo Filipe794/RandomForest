@@ -1,0 +1,64 @@
+# =============================================================================
+# R7 - Juntar tudo e conferir (ablação)
+# -----------------------------------------------------------------------------
+# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
+#
+# Pergunta: os vencedores das rodadas anteriores funcionam juntos, e cada um
+#           ainda é necessário?
+# Objetivo: o baseline é a combinação de todos os vencedores. Cada experimento
+#           tira UM deles (volta ao valor do R1). Se tirar um elemento não piora
+#           significativamente, ele sai (regra da mais simples).
+# Critério: o da rodada que decidiu cada ponto: roc_auc (R1-R4, R6) e F1 ou
+#           balanced_accuracy com recall >= 0.70 (R5).
+#   python compare.py --rodada R7_ --ref <vencedor do R6> --salvar
+#   (--ref: compara cada ablação com a combinação completa, não com a de maior média)
+#
+# Atualizar antes de rodar:
+# - Todo o baseline (vencedores de R1 a R6).
+# - Os overrides de model: repita o model do baseline, mudando só o que é tirado.
+# Experimentos cujo elemento já é o padrão no baseline (ex.: R7_sem_flags quando
+# o R4 não escolheu flags) ficam iguais ao baseline e são pulados pelo hash.
+# =============================================================================
+
+baseline_name: R7_baseline
+
+baseline:
+  zeros: to_nan                               # ATUALIZAR: vencedor de R4
+  missing_flags: none                         # ATUALIZAR: vencedor de R4
+  imputer: median                             # ATUALIZAR: vencedor de R4
+  features: none                              # ATUALIZAR: vencedor de R6
+  selection: none
+  balancing: none                             # ATUALIZAR: vencedor de R5
+  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: R1, R2, R3 + R5
+  # threshold: {name: tuned, scoring: f1}     # ATUALIZAR: vencedor de R5 (descomente se venceu)
+
+experiments:
+  # Sem as colunas de flag (R4)
+  - name: R7_sem_flags
+    override: {missing_flags: none}
+
+  # Com a imputação do R1 (mediana) no lugar da vencedora do R4
+  - name: R7_imputer_mediana
+    override: {imputer: median}
+
+  # Sem variáveis derivadas (R6)
+  - name: R7_sem_variaveis
+    override: {features: none}
+
+  # Sem subamostragem (R5)
+  - name: R7_sem_subamostragem
+    override: {balancing: none}
+
+  # Sem ajuste de limiar (R5)
+  - name: R7_sem_limiar
+    override: {threshold: none}
+
+  # Sem peso de classe (R5): repita o model do baseline SEM o class_weight
+  - name: R7_sem_peso
+    override:
+      model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: model do baseline sem class_weight
+
+  # Com as árvores completas do padrão (R3): repita o model SEM max_depth/min_samples_leaf
+  - name: R7_arvores_completas
+    override:
+      model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: model do baseline sem max_depth/min_samples_leaf

@@ -1,0 +1,40 @@
+# =============================================================================
+# R3 - Tamanho de cada árvore
+# -----------------------------------------------------------------------------
+# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
+#
+# Pergunta: as árvores da floresta devem crescer completas ou ser limitadas?
+# Objetivo: contraste direto com o R1 do DecisionTree, em que a árvore única
+#           precisava ser rasa (max_depth 3) para não decorar. Na floresta, a
+#           votação compensa o excesso de cada árvore.
+# Critério: roc_auc. Entre as sem diferença significativa para a melhor, fica a
+#           mais simples: mais rasa e/ou com folhas maiores.
+#
+# Atualizar antes de rodar:
+# - model: vencedores do R1 (n_estimators) e do R2 (max_features, max_samples),
+#   no baseline E no override abaixo.
+# A combinação max_depth=None + min_samples_leaf=1 é o próprio baseline e é
+# pulada pelo hash: a referência no compare.py é a pasta do vencedor do R2.
+#
+# Fechar a rodada:  python compare.py --rodada R3_ --incluir <vencedor do R2> --salvar
+# =============================================================================
+
+baseline_name: R3_baseline
+
+baseline:
+  zeros: to_nan
+  missing_flags: none
+  imputer: median
+  features: none
+  selection: none
+  balancing: none
+  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedores de R1 e R2
+
+experiments:
+  # Grade profundidade x tamanho mínimo de folha (5 x 4 = 20, uma é o baseline)
+  - name: R3_tamanho
+    override:
+      model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedores de R1 e R2
+    sweep:
+      model.max_depth: [null, 4, 6, 8, 12]
+      model.min_samples_leaf: [1, 3, 5, 10]

@@ -1,0 +1,51 @@
+# =============================================================================
+# R2 - Variáveis sorteadas por corte (decorrelação das árvores)
+# -----------------------------------------------------------------------------
+# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
+#
+# Pergunta: quanto vale a pena tornar as árvores diferentes entre si?
+# Objetivo: em cada corte, a árvore só escolhe entre algumas variáveis
+#           sorteadas. Pouco sorteio = árvores fortes, mas parecidas; muito
+#           sorteio = árvores diferentes, mas fracas.
+#             max_features  variáveis por corte (com as 8 originais)
+#             sqrt          2   (padrão da Random Forest)
+#             log2          3
+#             0.5           4
+#             null          8   (= bagging puro: só o sorteio de pacientes)
+# Critério: roc_auc. No empate, fica o sqrt (padrão da literatura, Breiman 2001).
+#           Se o null (bagging) empatar com o sqrt, o ganho da floresta vem do
+#           sorteio de pacientes, e não do de variáveis.
+#
+# Atualizar antes de rodar:
+# - model: n_estimators vencedor do R1, no baseline E em cada override abaixo.
+# O baseline é pulado pelo hash (igual ao vencedor do R1): a referência no
+# compare.py é a pasta desse vencedor.
+#
+# Fechar a rodada:  python compare.py --rodada R2_ --incluir <vencedor do R1> --salvar
+# =============================================================================
+
+baseline_name: R2_baseline
+
+baseline:
+  zeros: to_nan
+  missing_flags: none
+  imputer: median
+  features: none
+  selection: none
+  balancing: none
+  model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+
+experiments:
+  # sqrt é o baseline (pulado); null = bagging
+  - name: R2_max_features
+    override:
+      model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+    sweep:
+      model.max_features: [sqrt, log2, 0.5, null]
+
+  # Opcional: tamanho do sorteio de pacientes de cada árvore (null = 100%, o baseline)
+  - name: R2_max_samples
+    override:
+      model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+    sweep:
+      model.max_samples: [0.5, 0.7]

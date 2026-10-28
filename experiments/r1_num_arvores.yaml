@@ -1,0 +1,38 @@
+# =============================================================================
+# R1 - Número de árvores
+# -----------------------------------------------------------------------------
+# Pergunta: quantas árvores bastam para o resultado parar de mudar?
+# Objetivo: fixar o n_estimators antes das outras rodadas. Com poucas árvores a
+#           votação fica instável e as comparações seguintes ficam ruidosas.
+# Critério: roc_auc. Fica o MENOR número de árvores sem diferença significativa
+#           para o melhor. Mais árvores não causam overfitting, só custam tempo
+#           (Probst e Boulesteix, 2018): espera-se um platô.
+# Baseline: pré-processamento mais simples (zeros -> NaN -> mediana) e a floresta
+#           com os padrões do scikit-learn (max_features: sqrt, árvores completas).
+#
+# Lembretes:
+# - O override SUBSTITUI a etapa inteira, inclusive o model.
+# - sweep: {etapa.parametro: [valores]} gera um experimento por combinação.
+# - Parâmetros iguais ao padrão (n_estimators: 100, max_features: sqrt,
+#   max_depth: null...) saem da config: n_estimators=100 no sweep é o próprio
+#   baseline e é pulado.
+# - O R1_arvores__n_estimators=1000 é o mais lento (~10x o baseline).
+#
+# Fechar a rodada:  python compare.py --rodada R1_ --salvar
+# =============================================================================
+
+baseline_name: R1_baseline
+
+baseline:
+  zeros: to_nan
+  missing_flags: none
+  imputer: median
+  features: none
+  selection: none
+  balancing: none
+  model: {name: random_forest, n_estimators: 100}
+
+experiments:
+  - name: R1_arvores
+    sweep:
+      model.n_estimators: [50, 100, 200, 300, 500, 1000]

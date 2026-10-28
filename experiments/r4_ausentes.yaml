@@ -1,0 +1,50 @@
+# =============================================================================
+# R4 - Valores ausentes (exames não medidos)
+# -----------------------------------------------------------------------------
+# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
+#
+# Pergunta: como tratar os zeros impossíveis (exame não medido)?
+# Cinco imputadores, um de cada família, com e sem as colunas <col>_missing:
+#   none        sem imputação: a floresta decide para que lado mandar os NaN
+#   constant    ausência como informação: -1, abaixo de qualquer valor real
+#   median      estatística simples (o baseline)
+#   knn_scaled  vizinhos, com as colunas padronizadas para medir a distância
+#   missforest  modelo: Random Forest iterativa (Stekhoven e Bühlmann, 2012).
+#               É o mais lento: várias florestas por fold.
+# Critério: roc_auc. Entre as sem diferença significativa, a mais simples, nesta
+#           ordem: none -> constant -> median -> knn_scaled -> missforest; sem
+#           flags antes de com flags.
+# Duas perguntas para o artigo:
+#   1. A ausência informa? (none / constant / flags contra os imputadores)
+#   2. Vale imputar com sofisticação? (median -> knn_scaled -> missforest)
+#
+# Atualizar antes de rodar:
+# - model: vencedores de R1, R2 e R3, no baseline.
+# O R4_ausentes__name=median_name=none é o próprio baseline (pulado): a
+# referência no compare.py é a pasta do vencedor do R3.
+#
+# Fechar a rodada:  python compare.py --rodada R4_ --incluir <vencedor do R3> --salvar
+# =============================================================================
+
+baseline_name: R4_baseline
+
+baseline:
+  zeros: to_nan
+  missing_flags: none
+  imputer: median
+  features: none
+  selection: none
+  balancing: none
+  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedores de R1, R2 e R3
+
+experiments:
+  # 5 imputadores x 2 (com e sem flags) = 10 execuções, uma é o baseline
+  - name: R4_ausentes
+    override: {imputer: median}
+    sweep:
+      imputer.name: [none, constant, median, knn_scaled, missforest]
+      missing_flags.name: [none, flags]
+
+  # Opcional: a versão linear do missforest, para a comparação "linear x não linear".
+  # - name: R4_iterative_linear
+  #   override: {imputer: iterative}

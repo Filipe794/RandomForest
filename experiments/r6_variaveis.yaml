@@ -1,0 +1,40 @@
+# =============================================================================
+# R6 - Variáveis derivadas
+# -----------------------------------------------------------------------------
+# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
+#
+# Pergunta: HOMA-IR, razões e faixas ainda ajudam na floresta?
+#   homa          HOMA_IR = Glucose x Insulin / 405 (resistência à insulina)
+#   ratios        Insulin/Glucose, Glucose x BMI, Pregnancies/Age
+#   bmi_age_bins  faixas de IMC (OMS) e de idade
+# Hipótese: o ganho deve ser menor que no DecisionTree, porque muitas árvores
+#           combinando cortes conseguem aproximar interações como glicose x insulina.
+# Critério: roc_auc. Sem variável nova, se empatar.
+#           Se o R5 escolheu peso ou limiar, confira também o critério do R5
+#           (F1 ou balanced_accuracy, com recall >= 0.70).
+#
+# Atualizar antes de rodar:
+# - Todo o baseline: zeros/missing_flags/imputer (R4), model (R1, R2, R3 e o
+#   class_weight ou balanced_rf do R5), balancing e threshold (R5).
+# O baseline é pulado pelo hash: a referência no compare.py é a pasta do vencedor do R5.
+#
+# Fechar a rodada:  python compare.py --rodada R6_ --incluir <vencedor do R5> --salvar
+# =============================================================================
+
+baseline_name: R6_baseline
+
+baseline:
+  zeros: to_nan                               # ATUALIZAR: vencedor de R4
+  missing_flags: none                         # ATUALIZAR: vencedor de R4
+  imputer: median                             # ATUALIZAR: vencedor de R4
+  features: none
+  selection: none
+  balancing: none                             # ATUALIZAR: vencedor de R5
+  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: R1, R2, R3 + R5
+  # threshold: {name: tuned, scoring: f1}     # ATUALIZAR: vencedor de R5 (descomente se venceu)
+
+experiments:
+  - name: R6_variaveis
+    override: {features: homa}
+    sweep:
+      features.name: [homa, ratios, bmi_age_bins]
