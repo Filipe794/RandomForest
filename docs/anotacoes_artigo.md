@@ -142,10 +142,97 @@ Para cada rodada: vencedor (pasta), referência, candidatas empatadas, escolha e
 - Na balanced accuracy, que pondera igualmente as duas classes, o modelo final é superior
   (0,732 contra 0,721 do modelo de maior acurácia).
 
-### R9 – Escolha final
-- Config final:
-- Justificativa:
+## R9 – Escolha final
 
+### Configuração final
+Pasta: results\runs\20261029_113816_5ffbd2_R5_limiar_f1
+
+| Etapa              | Escolha                                          | Rodada |
+|--------------------|--------------------------------------------------|--------|
+| Zeros              | tratados como ausentes (NaN), exceto gestações    | R4     |
+| Imputação          | mediana, calculada só no treino de cada fold      | R4     |
+| Flags de ausência  | não                                              | R4     |
+| Variáveis novas    | não                                              | R6     |
+| Nº de árvores      | 100                                              | R1     |
+| max_features       | sqrt                                             | R2     |
+| max_depth          | 4                                                | R3     |
+| min_samples_leaf   | 10                                               | R3     |
+| Desbalanceamento   | limiar de decisão ajustado para F1 (~0,39)        | R5/R8  |
+| Peso de classe     | não                                              | R8     |
+| Calibração         | não                                              | R8     |
+
+Desempenho na validação cruzada (5 folds x 5 repetições):
+ROC-AUC 0,827 · recall 0,726 · F1 0,654 · balanced accuracy 0,732 · Brier 0,162 ·
+acurácia 0,734.
+
+### Regra geral de decisão
+Em cada rodada, as configurações foram comparadas com o teste t corrigido de
+Nadeau-Bengio (α = 0,05). Entre as que não diferiam significativamente da melhor, foi
+escolhida a mais simples. Exceção: no número de árvores (R1), "mais simples" não se
+aplica, porque mais árvores não causam sobreajuste.
+
+### Justificativa por rodada
+
+**R1 – Número de árvores: 100.**
+As 6 opções (50 a 1000) empataram (ROC-AUC 0,815 a 0,823). Não se escolheu 50 porque o
+número de árvores não controla sobreajuste (Breiman, 2001) e deve ser "grande o
+suficiente" (Probst e Boulesteix, 2018); o ganho fica pequeno a partir de 64–128 árvores
+(Oshiro et al., 2012); com 50, a parcela (1 − ρ)σ²/B da variância (Eq. 1) é o dobro da de
+100, o que adicionaria ruído às rodadas seguintes; 50 teve a menor média em todas as
+métricas; e o custo de 100 é pequeno. A execução foi reproduzível entre duas máquinas.
+
+**R2 – max_features: sqrt (padrão).**
+[CONFERIR: faixa de ROC-AUC e p da R2 em results\comparacoes\R2_roc_auc.csv.]
+As opções testadas (sqrt, log2, 0,5, None e max_samples 0,5/0,7) não superaram
+significativamente o padrão, que foi mantido por ser o mais simples.
+
+**R3 – Tamanho das árvores: max_depth 4, min_samples_leaf 10.**
+As 20 combinações empataram (ROC-AUC 0,819 a 0,832). Escolhida a mais simples nos dois
+eixos: 0,827, p = 0,304 contra a melhor, ~12 folhas por árvore contra ~93 das árvores
+completas. As árvores completas, padrão do RF, ficaram em penúltimo (0,819, p = 0,080),
+na mesma direção do DecisionTree (árvore rasa), mas de forma mais suave.
+
+**R4 – Valores ausentes: mediana, sem flags.**
+As 10 opções empataram (ROC-AUC 0,819 a 0,833; mediana sem flags 0,827, p = 0,445).
+Imputadores mais complexos (KNN, missforest) e as flags não trouxeram ganho; o missforest
+ainda custou ~270 s por execução. A mediana é a opção mais simples e a mesma do
+DecisionTree.
+
+**R5 – Desbalanceamento (escolha revista na R8).**
+Sem tratamento, o recall fica em ~0,54 e o F1 em 0,605, significativamente pior
+(p = 0,032). As 7 técnicas testadas empataram no F1 (0,652 a 0,675) e passaram no filtro
+de recall ≥ 0,70. A escolha inicial foi class_weight=balanced (F1 0,666, recall 0,725),
+depois substituída na R8 pelo ajuste de limiar.
+
+**R6 – Variáveis derivadas: nenhuma.**
+HOMA-IR, razões e faixas empataram em ROC-AUC (0,826 a 0,832; sem variável nova
+p = 0,348) e em F1 (0,664 a 0,682; p = 0,310). Coerente com a hipótese: a floresta
+aproxima sozinha interações como glicose x insulina.
+
+**R7 – Ablação: todos os elementos mantidos.**
+- Sem peso de classe: F1 significativamente pior (0,605, p = 0,043), recall ~0,54.
+- Árvores completas: ROC-AUC e F1 empatam, mas o recall cai para 0,670 (< 0,70) e as
+  árvores passam de 12 para 94 folhas; a poda fica, por ser também a opção mais simples.
+- Flags, imputação, variáveis, subamostragem e limiar já estavam no padrão.
+
+**R8 – Calibração: revisão da escolha do R5.** 
+- Com class_weight=balanced, o Brier era 0,172. A calibração sigmoide reduziu para 0,160
+(p = 0,001), mas derrubou o recall para 0,599, porque desfaz a inflação das
+probabilidades e o corte continua em 0,5. Testando as candidatas do R5 com calibração e
+limiar, três passaram em todos os critérios (recall ≥ 0,70, F1 e Brier empatados com o
+melhor). Escolhida a mais simples: limiar F1 sem peso e sem calibração (Brier 0,162,
+p = 0,303 contra o melhor; F1 0,654, empatado com todas, p ≥ 0,455). Conclusão: o peso
+de classe distorcia as probabilidades; sem ele, a floresta já sai quase calibrada, e o
+recall é recuperado baixando o limiar.
+
+### Limitações registradas
+- O recall do limiar ajustado é mais instável entre folds (dp 0,109).
+- A acurácia (0,734) é menor que a de modelos com corte em 0,5 (até 0,772), troca
+  consciente por um recall maior.
+- Muitas rodadas terminaram em empate: com ~537 pacientes no treino, o teste tem pouco
+  poder para detectar diferenças pequenas ("não significativo" ≠ "igual").
+- 4 execuções da R5 foram refeitas porque a primeira rodada usou o model antigo nos
+  overrides; as pastas erradas estão em results\descartados.
 ### R10 – Teste final
 - Métricas no teste (CV × teste):
 - Matriz de confusão, em termos clínicos:
