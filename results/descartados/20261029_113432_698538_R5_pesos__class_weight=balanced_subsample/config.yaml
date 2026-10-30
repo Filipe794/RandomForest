@@ -1,0 +1,17 @@
+name: R5_pesos__class_weight=balanced_subsample
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  n_estimators: 300
+  class_weight: balanced_subsample

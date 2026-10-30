@@ -1,0 +1,16 @@
+name: R1_arvores__n_estimators=500
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  n_estimators: 500

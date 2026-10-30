@@ -1,0 +1,17 @@
+name: R4_ausentes__imputer=none_missing_flags=flags
+zeros:
+  name: to_nan
+missing_flags:
+  name: flags
+imputer:
+  name: none
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  max_depth: 4
+  min_samples_leaf: 10

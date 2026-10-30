@@ -1,0 +1,20 @@
+name: R5_peso_limiar_f1
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  n_estimators: 300
+  class_weight: balanced
+threshold:
+  name: tuned
+  scoring: f1

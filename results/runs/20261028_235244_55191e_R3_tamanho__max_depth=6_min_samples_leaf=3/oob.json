@@ -1,0 +1,8 @@
+{
+  "disponivel": true,
+  "roc_auc": 0.8270741023682201,
+  "brier": 0.15945581813368068,
+  "n_amostras": 537,
+  "n_sem_oob": 0,
+  "calibrado_no_cv": false
+}

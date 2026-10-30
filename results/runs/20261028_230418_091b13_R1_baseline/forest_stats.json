@@ -1,0 +1,13 @@
+{
+  "n_estimators": 100,
+  "depth": {
+    "mean": 15.47,
+    "min": 10,
+    "max": 23
+  },
+  "leaves": {
+    "mean": 93.32,
+    "min": 79,
+    "max": 109
+  }
+}

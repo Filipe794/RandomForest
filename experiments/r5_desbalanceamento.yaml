@@ -1,8 +1,6 @@
 # =============================================================================
 # R5 - Desbalanceamento
 # -----------------------------------------------------------------------------
-# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
-#
 # Pergunta: como encontrar mais diabéticas SEM SMOTE?
 #   class_weight: balanced            erros nas positivas pesam mais (pesos do treino todo)
 #   class_weight: balanced_subsample  o mesmo, recalculado no bootstrap de cada árvore
@@ -16,37 +14,33 @@
 #   python compare.py --rodada R5_ --metric balanced_accuracy --incluir <vencedor do R4>
 #   e confira o recall de cada uma no summary.csv (python summarize.py --metric recall).
 #
-# Atualizar antes de rodar:
-# - zeros, missing_flags, imputer: vencedores do R4.
-# - model: vencedores de R1, R2 e R3, no baseline E em TODO override de model
-#   abaixo (o override substitui o model inteiro).
-# - balanced_rf: usa bootstrap: false (o sorteio equilibrado faz esse papel), então
-#   NÃO repita max_samples nele, se o R2 tiver escolhido um.
+# Atualizado: zeros/missing_flags/imputer = vencedor do R4 (mediana sem flags);
+#             model = vencedores de R1, R2 e R3, no baseline e em todos os overrides.
 # =============================================================================
 
 baseline_name: R5_baseline
 
 baseline:
-  zeros: to_nan                               # ATUALIZAR: vencedor de R4
-  missing_flags: none                         # ATUALIZAR: vencedor de R4
-  imputer: median                             # ATUALIZAR: vencedor de R4
+  zeros: to_nan                               # vencedor de R4
+  missing_flags: none                         # vencedor de R4
+  imputer: median                             # vencedor de R4
   features: none
   selection: none
   balancing: none
-  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedores de R1, R2 e R3
+  model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10}  # vencedores de R1, R2 e R3
 
 experiments:
   # Pesos de classe (2 execuções)
   - name: R5_pesos
     override:
-      model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR
+      model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10}  # vencedores de R1, R2 e R3
     sweep:
       model.class_weight: [balanced, balanced_subsample]
 
   # Floresta balanceada (subamostragem dentro de cada árvore)
   - name: R5_balanced_rf
     override:
-      model: {name: balanced_rf, n_estimators: 300, max_features: sqrt}  # ATUALIZAR (sem max_samples)
+      model: {name: balanced_rf, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10}  # vencedores de R1, R2 e R3 (sem max_samples)
 
   # Limiar de decisão escolhido para maximizar o F1
   - name: R5_limiar_f1
@@ -59,7 +53,7 @@ experiments:
   # Peso balanceado + limiar F1 juntos
   - name: R5_peso_limiar_f1
     override:
-      model: {name: random_forest, n_estimators: 300, max_features: sqrt, class_weight: balanced}  # ATUALIZAR
+      model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10, class_weight: balanced}  # vencedores de R1, R2 e R3
       threshold: {name: tuned, scoring: f1}
 
   # Subamostragem aleatória da classe 0 antes da floresta
