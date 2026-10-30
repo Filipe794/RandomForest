@@ -1,8 +1,6 @@
 # =============================================================================
 # R8 - Calibração das probabilidades
 # -----------------------------------------------------------------------------
-# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
-#
 # Pergunta: as probabilidades da floresta podem ser lidas como risco real?
 #           ("72% de risco" = de cada 100 pacientes assim, ~72 diabéticas)
 #   sigmoid   curva logística (método de Platt); mais segura com poucos dados
@@ -10,35 +8,28 @@
 #             pacientes por fold
 # A calibração usa um CV interno só no treino e mantém UMA floresta (as mesmas
 # árvores). Os dois mudam o Brier e o log loss. Efeito no roc_auc:
-#   sigmoid   curva sempre crescente: a ordem das pacientes não muda, o roc_auc
-#             fica IGUAL;
-#   isotonic  escada: pacientes com probabilidades próximas podem cair no mesmo
-#             degrau e empatar, o que pode mudar o roc_auc (em geral, um pouco
-#             para baixo). Confira o roc_auc das execuções isotonic.
-# Se o baseline tiver threshold, o limiar é reajustado sobre as probabilidades
-# calibradas (isso pode mudar recall, F1 etc.).
+#   sigmoid   a ordem das pacientes não muda, o roc_auc fica IGUAL;
+#   isotonic  pode empatar pacientes no mesmo degrau e mudar o roc_auc
+#             (em geral, um pouco para baixo). Confira o roc_auc das isotonic.
 # Critério: brier (menor é melhor). Entre as sem diferença significativa, a mais
 #           simples: sem calibração -> sigmoid -> isotonic.
 #   python compare.py --rodada R8_ --metric brier --incluir <vencedor do R7> --salvar
-#   Se houver limiar, confira também o critério do R5 (F1 ou balanced_accuracy,
-#   recall >= 0.70).
 #
-# Atualizar antes de rodar:
-# - Todo o baseline: igual ao vencedor do R7.
-# O baseline é pulado pelo hash: a referência no compare.py é a pasta do vencedor do R7.
+# Atualizado: baseline = vencedor do R7
+#   (20261029_133225_eae571_R5_pesos__class_weight=balanced).
+# O baseline é pulado pelo hash: a referência no compare.py é essa pasta.
 # =============================================================================
 
 baseline_name: R8_baseline
 
 baseline:
-  zeros: to_nan                               # ATUALIZAR: vencedor de R7
-  missing_flags: none                         # ATUALIZAR: vencedor de R7
-  imputer: median                             # ATUALIZAR: vencedor de R7
-  features: none                              # ATUALIZAR: vencedor de R7
+  zeros: to_nan                               # vencedor de R7
+  missing_flags: none                         # vencedor de R7
+  imputer: median                             # vencedor de R7
+  features: none                              # vencedor de R7
   selection: none
-  balancing: none                             # ATUALIZAR: vencedor de R7
-  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: vencedor de R7
-  # threshold: {name: tuned, scoring: f1}     # ATUALIZAR: vencedor de R7 (descomente se tiver)
+  balancing: none                             # vencedor de R7
+  model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10, class_weight: balanced}  # vencedor de R7
 
 experiments:
   - name: R8_calibracao
@@ -46,31 +37,16 @@ experiments:
     sweep:
       calibration.name: [sigmoid, isotonic]
 
-  # ---------------------------------------------------------------------------
-  # OPCIONAL: só se o R5 terminou com candidatas EMPATADAS (sem diferença
-  # significativa entre peso de classe, limiar, balanced_rf...).
-  # O R5 escolheu olhando probabilidades SEM calibração. Aqui as outras
-  # candidatas do R5 recebem a calibração vencedora acima, para conferir se a
-  # escolha do R5 se mantém depois de calibrar.
-  # Como usar:
-  # 1. Rode e feche o R8_calibracao acima primeiro.
-  # 2. Descomente os blocos abaixo, um por candidata do R5 que empatou (apague os
-  #    que não se aplicam). Cada um repete o baseline e muda só o que a
-  #    candidata muda: model e/ou threshold e/ou balancing.
-  # 3. Rode só eles:
-  #      python run_experiments.py experiments/r8_calibracao.yaml --only R8_cand_peso R8_cand_limiar
-  # 4. Compare pelo critério do R5 (F1 ou balanced_accuracy, recall >= 0.70):
-  #      python compare.py --rodada R8_cand --metric f1 --incluir <vencedor do R8_calibracao>
-  # Se a vencedora continuar a mesma: a ordem R5 -> R8 não afetou a escolha.
-  # ---------------------------------------------------------------------------
-  # - name: R8_cand_peso                # candidata do R5: class_weight, sem limiar
-  #   override:
-  #     calibration: sigmoid            # ATUALIZAR: calibração vencedora do R8_calibracao
-  #     model: {name: random_forest, n_estimators: 300, max_features: sqrt, class_weight: balanced}  # ATUALIZAR
-  #     threshold: none
-  #
-  # - name: R8_cand_limiar              # candidata do R5: limiar F1, sem peso
-  #   override:
-  #     calibration: sigmoid            # ATUALIZAR: calibração vencedora do R8_calibracao
-  #     model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR
-  #     threshold: {name: tuned, scoring: f1}
+  # Candidata do R5: limiar F1, sem peso, com a calibração vencedora
+  - name: R8_cand_limiar
+    override:
+      calibration: sigmoid
+      model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10}
+      threshold: {name: tuned, scoring: f1}
+
+  # Peso de classe + limiar F1, com a calibração vencedora
+  - name: R8_cand_peso_limiar
+    override:
+      calibration: sigmoid
+      model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10, class_weight: balanced}
+      threshold: {name: tuned, scoring: f1}

@@ -1,0 +1,19 @@
+{
+  "run_id": "20261030_160814_25f544_R8_cand_peso_limiar",
+  "name": "R8_cand_peso_limiar",
+  "hash": "25f5448e175214a74cd2978e5952ec1d2207d80f4b95e8649277b51390c893fa",
+  "date": "2026-10-30T16:08:24",
+  "train_sha256": "390e6dd64c72ec31ff122e939ca9a9bc69cabf3561c1f40a64ed2eb7451f2114",
+  "n_train": 537,
+  "seed": 42,
+  "cv": "RepeatedStratifiedKFold(5x5)",
+  "elapsed_s": 258.55,
+  "versions": {
+    "python": "3.14.7",
+    "sklearn": "1.9.1",
+    "imblearn": "0.14.2",
+    "pandas": "3.0.6",
+    "numpy": "2.5.4"
+  },
+  "threshold": 0.4207676627511237
+}

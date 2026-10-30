@@ -94,13 +94,53 @@ Para cada rodada: vencedor (pasta), referência, candidatas empatadas, escolha e
 - Flags, imputação, variáveis, subamostragem e limiar já estavam no padrão: nada a remover.
 
 ### R8 – Calibração
-- Vencedor:
-- Brier antes e depois; o AUC ficou igual? (deve ser idêntico no sigmoid; no isotonic pode
-  cair um pouco, por causa dos empates criados pela escada)
-- Hipótese: se o R5 escolheu `class_weight`, a calibração melhora o Brier sobretudo por
-  desfazer o deslocamento das probabilidades para a classe positiva, sem perder o recall.
-- Candidatas empatadas do R5 conferidas já calibradas (bloco opcional do YAML)? A escolha se
-  manteve?
+- Vencedor: 20261029_113816_5ffbd2_R5_limiar_f1 (sem peso de classe, sem calibração,
+  limiar ajustado para F1, ~0,39). Substitui o vencedor do R5 (class_weight=balanced).
+
+- Brier antes e depois; o AUC ficou igual?
+  - Antes (class_weight=balanced, sem calibração): Brier 0,172, ROC-AUC 0,826.
+  - Sigmoide: Brier 0,160 (melhor, p = 0,001 contra sem calibração), ROC-AUC 0,826
+    -> idêntico, como esperado (a curva é crescente e não muda a ordem das pacientes).
+  - Isotônica: Brier 0,163 (empata com o sigmoide, p = 0,193), ROC-AUC 0,821 -> caiu 0,005,
+    pelos empates criados pelos degraus.
+
+- Hipótese (peso de classe + calibração): confirmada em parte.
+  - Confirmado: a calibração melhora o Brier por desfazer o deslocamento das probabilidades
+    para a classe positiva causado pelo class_weight.
+  - Refutado: o recall NÃO se manteve. Com o corte em 0,5, as probabilidades calibradas
+    (mais baixas) fazem o modelo apontar menos diabéticas: recall 0,725 -> 0,599 (sigmoide)
+    e 0,576 (isotônica), abaixo do critério de 0,70 do R5.
+  - Solução: separar risco e decisão, calibrando as probabilidades e ajustando o limiar.
+
+- Candidatas empatadas do R5 conferidas já calibradas? A escolha se manteve?
+  - Testadas: R8_cand_limiar (sigmoide + limiar, sem peso) e R8_cand_peso_limiar
+    (sigmoide + limiar + peso), junto com o R5_limiar_f1 (só limiar).
+  - Brier: as três empatam com a melhor (R8_cand_limiar 0,159; R8_cand_peso_limiar 0,160,
+    p = 0,885; R5_limiar_f1 0,162, p = 0,303).
+  - F1 (--ref R5_limiar_f1, 0,654): empata com R5 peso 0,666 (p = 0,455),
+    R8_cand_peso_limiar 0,658 (p = 0,812) e R8_cand_limiar 0,653 (p = 0,948).
+  - Recall: R5_limiar_f1 0,726; R8_cand_limiar 0,718; R8_cand_peso_limiar 0,744.
+  - A escolha do R5 NÃO se manteve: o class_weight=balanced sai, porque piora o Brier
+    (0,172) sem ganho significativo de F1. Fica a opção mais simples que passa nos três
+    critérios: R5_limiar_f1 (sem peso, sem calibração).
+  - Conclusão: o problema das probabilidades vinha do peso de classe. Sem ele, a floresta
+    já sai quase calibrada (Brier 0,162, empatado com o sigmoide), e o recall é recuperado
+    baixando o limiar de decisão, em vez de distorcer o treino.
+  - Atenção: o limiar ajustado deixa o recall mais instável entre folds
+    (dp 0,109, contra 0,072 com o peso de classe).
+
+### Acurácia do modelo final (validação cruzada)
+- Acurácia: 0,734 ± 0,042. Modelo trivial ("não diabética" para todas): 0,651.
+- Fica entre as mais baixas das 54 execuções; a maior é 0,772 (R3, profundidade 6 /
+  folha 10), mas com recall de só 0,550.
+- Motivo: ao baixar o limiar de 0,5 para ~0,39, o modelo encontra mais diabéticas
+  (recall 0,726 contra 0,550) à custa de mais falsos alarmes nas não diabéticas. Num grupo
+  de 231 pacientes (~81 diabéticas), isso equivale a ~14 diabéticas a mais encontradas e
+  ~23 falsos alarmes a mais, ou ~9 erros a mais no saldo.
+- A acurácia trata os dois erros como iguais; em rastreamento, deixar passar uma diabética
+  é mais grave. Por isso ela não foi usada como critério de seleção.
+- Na balanced accuracy, que pondera igualmente as duas classes, o modelo final é superior
+  (0,732 contra 0,721 do modelo de maior acurácia).
 
 ### R9 – Escolha final
 - Config final:
