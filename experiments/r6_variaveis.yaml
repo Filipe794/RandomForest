@@ -1,8 +1,6 @@
 # =============================================================================
 # R6 - Variáveis derivadas
 # -----------------------------------------------------------------------------
-# !!! NÃO RODAR ANTES DE ATUALIZAR O BASELINE !!!
-#
 # Pergunta: HOMA-IR, razões e faixas ainda ajudam na floresta?
 #   homa          HOMA_IR = Glucose x Insulin / 405 (resistência à insulina)
 #   ratios        Insulin/Glucose, Glucose x BMI, Pregnancies/Age
@@ -10,12 +8,12 @@
 # Hipótese: o ganho deve ser menor que no DecisionTree, porque muitas árvores
 #           combinando cortes conseguem aproximar interações como glicose x insulina.
 # Critério: roc_auc. Sem variável nova, se empatar.
-#           Se o R5 escolheu peso ou limiar, confira também o critério do R5
+#           Como o R5 escolheu peso de classe, confira também o critério do R5
 #           (F1 ou balanced_accuracy, com recall >= 0.70).
 #
-# Atualizar antes de rodar:
-# - Todo o baseline: zeros/missing_flags/imputer (R4), model (R1, R2, R3 e o
-#   class_weight ou balanced_rf do R5), balancing e threshold (R5).
+# Atualizado: zeros/missing_flags/imputer = vencedor do R4 (mediana sem flags);
+#             model = vencedores de R1, R2, R3 + class_weight balanced do R5;
+#             balancing none e sem threshold (R5 escolheu peso de classe).
 # O baseline é pulado pelo hash: a referência no compare.py é a pasta do vencedor do R5.
 #
 # Fechar a rodada:  python compare.py --rodada R6_ --incluir <vencedor do R5> --salvar
@@ -24,14 +22,13 @@
 baseline_name: R6_baseline
 
 baseline:
-  zeros: to_nan                               # ATUALIZAR: vencedor de R4
-  missing_flags: none                         # ATUALIZAR: vencedor de R4
-  imputer: median                             # ATUALIZAR: vencedor de R4
+  zeros: to_nan                               # vencedor de R4
+  missing_flags: none                         # vencedor de R4
+  imputer: median                             # vencedor de R4
   features: none
   selection: none
-  balancing: none                             # ATUALIZAR: vencedor de R5
-  model: {name: random_forest, n_estimators: 300, max_features: sqrt}  # ATUALIZAR: R1, R2, R3 + R5
-  # threshold: {name: tuned, scoring: f1}     # ATUALIZAR: vencedor de R5 (descomente se venceu)
+  balancing: none                             # vencedor de R5 (peso de classe, sem subamostragem)
+  model: {name: random_forest, n_estimators: 100, max_features: sqrt, max_depth: 4, min_samples_leaf: 10, class_weight: balanced}  # vencedores de R1, R2, R3 e R5
 
 experiments:
   - name: R6_variaveis

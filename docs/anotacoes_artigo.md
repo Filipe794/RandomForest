@@ -73,9 +73,16 @@ Para cada rodada: vencedor (pasta), referência, candidatas empatadas, escolha e
      O baseline (0,709, p = 0,099) não difere na bal_acc, mas já está fora pelo recall (~0,54).
 
 ### R6 – Variáveis derivadas
-- Vencedor:
-- O ganho foi menor que no DT?
+- Vencedor: sem variável nova (mantém 20261029_133225_eae571_R5_pesos__class_weight=balanced)
+  - ROC-AUC: empate (0,826 a 0,832; ref. ratios; sem variável nova p = 0,348).
+  - F1: empate (0,664 a 0,682; ref. homa; sem variável nova p = 0,310).
+- O ganho foi menor que no DT? Nos dois modelos as variáveis derivadas não foram adotadas:
+  o DT final também ficou sem variáveis novas. Na floresta, o maior ganho foi de +0,006 de
+  ROC-AUC (ratios) e +0,016 de F1 (homa), nenhum significativo. Coerente com a hipótese:
+  com muitas árvores combinando cortes, a floresta aproxima sozinha interações como
+  glicose x insulina. 
 
+  
 ### R7 – Combinação e ablação
 - Vencedor:
 - Elementos removidos por não fazerem diferença:
