@@ -233,15 +233,86 @@ recall é recuperado baixando o limiar.
   poder para detectar diferenças pequenas ("não significativo" ≠ "igual").
 - 4 execuções da R5 foram refeitas porque a primeira rodada usou o model antigo nos
   overrides; as pastas erradas estão em results\descartados.
-### R10 – Teste final
-- Métricas no teste (CV × teste):
-- Matriz de confusão, em termos clínicos:
+
+
+### R10 – Teste final (231 pacientes, executado uma única vez)
+- ROC-AUC 0,824 · acurácia 0,732 · balanced accuracy 0,717 · F1 0,635 · precisão 0,607 ·
+  recall 0,667 · especificidade 0,767 · Brier 0,164 · log loss 0,490.
+- Matriz de confusão: VN 115, FP 35, FN 27, VP 54.
+- Consistente com a validação cruzada (ROC-AUC 0,827, acurácia 0,734, Brier 0,162): sem
+  sinal de sobreajuste à seleção.
+- Recall abaixo da meta de 0,70 da CV, mas dentro da variação esperada (dp 0,109 na CV;
+  IC 95% de Wilson para 54/81 ≈ 0,56–0,76). Com 81 diabéticas, cada paciente vale ~1,2
+  ponto de recall.
+
 
 ### R11 – Árvore × floresta e interpretabilidade
-- CV fold a fold (`dt_vs_rf.py`):
-- Teste lado a lado:
+- CV fold a fold (`dt_vs_rf.py`, mesmos 5x5 folds, teste t corrigido):
+  - Árvore: 20261024_145908_a1b1c4_R3_peso_balanceado (1 árvore, profundidade 3, 8 folhas,
+    class_weight=balanced). Floresta: 20261029_113816_5ffbd2_R5_limiar_f1 (100 árvores,
+    profundidade média 4,0, 12 folhas em média).
+  - ROC-AUC: RF 0,827 × DT 0,785 (+0,042, p = 0,011) -> única diferença significativa.
+  - Acurácia 0,734 × 0,690 (p = 0,102); precisão 0,608 × 0,543 (p = 0,075);
+    F1 0,654 × 0,636 (p = 0,402); balanced accuracy 0,732 × 0,713 (p = 0,264) -> RF maior,
+    sem significância.
+  - Recall 0,726 × 0,786 (p = 0,402) -> DT maior, sem significância.
+
+- Teste lado a lado (231 pacientes, avaliação única de cada modelo):
+  - RF melhor: ROC-AUC 0,824 × 0,790; Brier 0,164 × 0,179; log loss 0,490 × 0,533;
+    precisão 0,607 × 0,591.
+  - DT melhor: recall 0,802 × 0,667; F1 0,681 × 0,635; balanced accuracy 0,751 × 0,717;
+    acurácia 0,736 × 0,732.
+  - Matrizes de confusão: DT encontra 65 das 81 diabéticas com 45 falsos alarmes
+    (VN 105, FP 45, FN 16, VP 65); RF encontra 54 com 35 (VN 115, FP 35, FN 27, VP 54).
+  - Leitura: a RF ordena melhor as pacientes por risco (AUC) e dá probabilidades mais
+    confiáveis (Brier); a diferença de recall vem do ponto de corte, com a DT mais
+    agressiva. Ver "Discussão: a floresta não superou a árvore em tudo".
+
 - PDP / SHAP: o que o modelo aprendeu de cada exame?
+  - Importância SHAP (média de |SHAP| no teste): glicose 0,108 >> IMC 0,055 > idade 0,032 ≈
+    insulina 0,029 ≈ gestações 0,029 > histórico familiar 0,017 > pressão 0,010 ≈
+    prega cutânea 0,009. A glicose domina (~2x o IMC; quase igual às quatro seguintes
+    somadas), coerente com o critério clínico e com a concentração do sinal em poucas
+    variáveis.
+  - PDP (risco médio previsto; média da base ~0,35):
+    - Glicose: ~0,23 em 80, sobe devagar até ~120 e dispara entre 130 e 160
+      (~0,36 -> ~0,60), estabilizando em ~0,62. Os cortes das árvores (132,5 e 151,5)
+      caem nesse trecho.
+    - IMC: ~0,25 abaixo de 25, salto entre 26 e 30 (até ~0,37), depois sobe até ~0,44
+      em 45 (fronteira sobrepeso/obesidade).
+    - Idade: ~0,31 aos 21 anos, ~0,40 entre 43 e 50, leve queda após 55.
+    - Gestações: plano até 6, degrau a partir de 7 (~0,34 -> ~0,40–0,43).
+    - Insulina: degrau entre ~90 e ~130 (~0,28 -> ~0,37), depois estável.
+    - Histórico familiar, pressão e prega cutânea: efeitos fracos e crescentes.
+    - Todos os efeitos na direção clinicamente esperada (valor maior, risco maior).
+  - SHAP por paciente confirma o PDP: glicose alta empurra o risco em até +0,32 e baixa
+    puxa em até -0,11; muitas gestações somam +0,06 a +0,10.
+  - Insulina ausente recebe SHAP levemente positivo (+0,01 a +0,03), provável efeito da
+    imputação pela mediana (que cai perto do degrau do PDP), e não sinal da ausência em
+    si: as flags de ausência não trouxeram ganho na R4.
+
 - Árvore substituta: profundidade, fidelidade e semelhança com as regras do DT:
+  - Fidelidade no teste (concordância com as decisões da RF): profundidade 2 (4 folhas)
+    85,7%; 3 (7 folhas) 93,1%; 4 (11 folhas) 93,9%; 5–6 (15–18 folhas) ~93%. A partir da
+    profundidade 3, aumentar a árvore não melhora a fidelidade.
+  - As decisões sim/não da RF são, em grande parte, as de uma árvore do tamanho da DT
+    (profundidade 3, 8 folhas).
+  - Porém, a AUC real da substituta de profundidade 3 é 0,696 (RF 0,824; DT 0,790): ela
+    copia a decisão, mas com 7 folhas só dá 7 valores de risco. A vantagem da RF está na
+    gradação fina do risco (AUC, Brier), não em decidir diferente.
+  - Semelhança com o DT:
+    - mesma raiz: glicose <= 132,5;
+    - mesmo corte de glicose 151,5 no ramo de glicose alta;
+    - IMC ~30 no ramo de glicose alta (29,6 na substituta × 29,95 no DT);
+    - cortes de IMC semelhantes no ramo de glicose baixa (27,55 e 40,5 × 26,9 e 42,8);
+    - diferença: a 2ª pergunta do ramo de glicose baixa é gestações <= 6,5 na substituta
+      e idade <= 29,5 no DT, variáveis correlacionadas (ambas separam mulheres mais
+      jovens das mais maduras).
+  - A comparação explica a diferença de recall no teste: no DT, o grupo "glicose < 132,5,
+    mais madura, IMC > 26,9" é uma folha de 128 pacientes, quase meio a meio, classificada
+    como diabética; na substituta, o grupo equivalente tem 50 pacientes. O DT classifica
+    como positivo um grupo maior de casos limítrofes, o que gera mais diabéticas
+    encontradas e mais falsos alarmes.
 
 ### R12 – Robustez e estabilidade
 - roc_auc entre sementes (desvio, amplitude):

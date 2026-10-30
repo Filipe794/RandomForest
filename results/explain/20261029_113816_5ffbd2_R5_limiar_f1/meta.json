@@ -1,0 +1,8 @@
+{
+  "run": "20261029_113816_5ffbd2_R5_limiar_f1",
+  "n_background": 50,
+  "risco_medio_treino": 0.3479761000083123,
+  "risco_medio_fundo_shap": 0.3092477409510288,
+  "erro_max_eficiencia_shap": 3.3306690738754696e-16,
+  "surrogate_depth": 3
+}
