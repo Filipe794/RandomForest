@@ -1,0 +1,18 @@
+{
+  "run_id": "20261030_154149_7daf72_R7_arvores_completas",
+  "name": "R7_arvores_completas",
+  "hash": "7daf7251e3886667dbf7529955ee800503b9b81a45e89b120c955dbe71d0a782",
+  "date": "2026-10-30T15:41:51",
+  "train_sha256": "390e6dd64c72ec31ff122e939ca9a9bc69cabf3561c1f40a64ed2eb7451f2114",
+  "n_train": 537,
+  "seed": 42,
+  "cv": "RepeatedStratifiedKFold(5x5)",
+  "elapsed_s": 24.92,
+  "versions": {
+    "python": "3.14.7",
+    "sklearn": "1.9.1",
+    "imblearn": "0.14.2",
+    "pandas": "3.0.6",
+    "numpy": "2.5.4"
+  }
+}

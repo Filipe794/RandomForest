@@ -82,10 +82,16 @@ Para cada rodada: vencedor (pasta), referência, candidatas empatadas, escolha e
   com muitas árvores combinando cortes, a floresta aproxima sozinha interações como
   glicose x insulina. 
 
-  
+
 ### R7 – Combinação e ablação
-- Vencedor:
-- Elementos removidos por não fazerem diferença:
+- Combinação final = 20261029_133225_eae571_R5_pesos__class_weight=balanced
+  (ROC-AUC 0,826, F1 0,666, recall 0,725). Comparações com --ref nessa pasta.
+- Sem peso de classe: ROC-AUC empata (0,827, p = 0,760), mas o F1 piora significativamente
+  (0,605, p = 0,043) e o recall cai para ~0,54 -> o peso fica.
+- Árvores completas: ROC-AUC (0,820, p = 0,515) e F1 (0,651, p = 0,402) empatam, mas o recall
+  cai para 0,670 (< 0,70) e as árvores passam de 12 para 94 folhas -> a poda fica
+  (é também a opção mais simples).
+- Flags, imputação, variáveis, subamostragem e limiar já estavam no padrão: nada a remover.
 
 ### R8 – Calibração
 - Vencedor:
