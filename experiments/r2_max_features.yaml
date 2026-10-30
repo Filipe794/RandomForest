@@ -33,19 +33,19 @@ baseline:
   features: none
   selection: none
   balancing: none
-  model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+  model: {name: random_forest, n_estimators: 100}  # ATUALIZAR: vencedor de R1
 
 experiments:
   # sqrt é o baseline (pulado); null = bagging
   - name: R2_max_features
     override:
-      model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+      model: {name: random_forest, n_estimators: 100}  # ATUALIZAR: vencedor de R1
     sweep:
       model.max_features: [sqrt, log2, 0.5, null]
 
   # Opcional: tamanho do sorteio de pacientes de cada árvore (null = 100%, o baseline)
   - name: R2_max_samples
     override:
-      model: {name: random_forest, n_estimators: 300}  # ATUALIZAR: vencedor de R1
+      model: {name: random_forest, n_estimators: 100}  # ATUALIZAR: vencedor de R1
     sweep:
       model.max_samples: [0.5, 0.7]

@@ -25,30 +25,64 @@ que chamou a atenção. Os números vêm do `compare.py --rodada ... --salvar`
 Para cada rodada: vencedor (pasta), referência, candidatas empatadas, escolha e justificativa.
 
 ### R1 – Número de árvores
-- Vencedor:
-- Observações (o platô apareceu? a partir de quantas árvores?):
+
+- Vencedor: 20261028_230418_091b13_R1_baseline (n_estimators = 100)
+- Observações: as 6 configurações (50 a 1000) empataram pelo teste t corrigido
+  (ROC-AUC de 0,815 a 0,823; p ≥ 0,14 contra a de 1000). Platô a partir de ~200–300.
+  Não foi escolhida a de 50: mais árvores não sobreajustam (Breiman 2001), o número de
+  árvores deve ser "grande o suficiente" (Probst e Boulesteix 2018), o ganho  fica pequeno
+  a partir de 64–128 (Oshiro et al. 2012), e com 50 a variância da floresta (Eq. 1) é o
+  dobro da de 100, o que adiciona ruído às rodadas seguintes. 100 = padrão do sklearn.
 
 ### R2 – max_features
-- Vencedor:
-- O bagging (`max_features: null`) empatou com o `sqrt`?
+- Vencedor: 20261028_230418_091b13_R1_baseline (sqrt, sem max_samples, 100 árvores)
+- O bagging (`max_features: null`) empatou com o `sqrt`? Sim: 0,813 x 0,819, p = 0,140.
+  Todas as 6 empataram (ROC-AUC 0,813 a 0,823); no empate fica o sqrt (critério da rodada).
+  max_samples 0,7 teve a maior média (0,823, p = 0,429 contra o sqrt), mas não foi significativo.
 
 ### R3 – Tamanho das árvores
-- Vencedor:
-- Contraste com o DT (lá a árvore precisou ser rasa):
+### R3 – Tamanho das árvores
+- Vencedor: 20261028_235130_c53880_R3_tamanho__max_depth=4_min_samples_leaf=10
+- Todas as 20 empataram (ROC-AUC 0,819 a 0,832; ref. max_depth 6 / leaf 5). Escolhida a mais
+  simples nos dois eixos: 0,827, p = 0,304, ~12 folhas por árvore (contra 93 das completas).
+- Contraste com o DT: as árvores completas (padrão do RF) ficaram em penúltimo (0,819,
+  p = 0,080). Mesma direção do DT (árvore rasa), mas bem mais suave na floresta.
 
 ### R4 – Valores ausentes
-- Vencedor:
-- A ausência informa? (`none` / `constant` / `flags` x imputadores)
-- Vale imputar com sofisticação? (`median` → `knn_scaled` → `missforest`)
+### R4 – Valores ausentes
+- Vencedor: mediana sem flags (mantém 20261028_235130_c53880_R3_tamanho__max_depth=4_min_samples_leaf=10)
+- Todas as 10 empataram (ROC-AUC 0,819 a 0,833; ref. KNN com flags). Mediana sem flags: 0,827, p = 0,445.
+- Imputadores mais complexos (KNN, missforest) e as flags de ausência não trouxeram ganho
+  significativo; missforest ainda custou ~270 s por execução. Escolhida a opção mais simples,
+  igual ao pré-processamento do DecisionTree.
+
+
+
 
 ### R5 – Desbalanceamento
-- Vencedor:
-- Recall, F1 e balanced_accuracy das candidatas com recall ≥ 0,70:
+- Vencedor: 20261029_133225_eae571_R5_pesos__class_weight=balanced
+- Critério: F1 entre as configs com recall >= 0,70. As 7 técnicas empataram (F1 0,652 a 0,675;
+  ref. subamostragem) e todas passaram no filtro de recall.
+- Sem tratamento, o F1 cai para 0,605 (p = 0,032, única diferença significativa) e o recall
+  fica em ~0,54: tratar o desbalanceamento melhora de fato.
+- Escolhido class_weight=balanced (F1 0,666, recall 0,725): um único parâmetro, usa todos os
+  dados e é a mesma técnica do DecisionTree.
+- Obs.: 4 execuções foram refeitas porque a primeira rodada usou o model antigo nos overrides
+  (300 árvores, sem poda); as pastas erradas estão em results\descartados.
+     - Balanced accuracy confirma: as 7 empatam (0,732 a 0,750); class_weight=balanced 0,742, p = 0,556.
+     O baseline (0,709, p = 0,099) não difere na bal_acc, mas já está fora pelo recall (~0,54).
 
 ### R6 – Variáveis derivadas
-- Vencedor:
-- O ganho foi menor que no DT?
+- Vencedor: sem variável nova (mantém 20261029_133225_eae571_R5_pesos__class_weight=balanced)
+  - ROC-AUC: empate (0,826 a 0,832; ref. ratios; sem variável nova p = 0,348).
+  - F1: empate (0,664 a 0,682; ref. homa; sem variável nova p = 0,310).
+- O ganho foi menor que no DT? Nos dois modelos as variáveis derivadas não foram adotadas:
+  o DT final também ficou sem variáveis novas. Na floresta, o maior ganho foi de +0,006 de
+  ROC-AUC (ratios) e +0,016 de F1 (homa), nenhum significativo. Coerente com a hipótese:
+  com muitas árvores combinando cortes, a floresta aproxima sozinha interações como
+  glicose x insulina. 
 
+  
 ### R7 – Combinação e ablação
 - Vencedor:
 - Elementos removidos por não fazerem diferença:

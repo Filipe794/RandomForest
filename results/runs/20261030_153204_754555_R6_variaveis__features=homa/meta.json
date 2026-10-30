@@ -1,0 +1,18 @@
+{
+  "run_id": "20261030_153204_754555_R6_variaveis__features=homa",
+  "name": "R6_variaveis__features=homa",
+  "hash": "754555f9b469d0b6df7becf8c3867503a86252a102b1a19b230a6fd178a1bc8a",
+  "date": "2026-10-30T15:32:06",
+  "train_sha256": "390e6dd64c72ec31ff122e939ca9a9bc69cabf3561c1f40a64ed2eb7451f2114",
+  "n_train": 537,
+  "seed": 42,
+  "cv": "RepeatedStratifiedKFold(5x5)",
+  "elapsed_s": 27.26,
+  "versions": {
+    "python": "3.14.7",
+    "sklearn": "1.9.1",
+    "imblearn": "0.14.2",
+    "pandas": "3.0.6",
+    "numpy": "2.5.4"
+  }
+}

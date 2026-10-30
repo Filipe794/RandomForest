@@ -1,0 +1,17 @@
+name: R5_subamostragem
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: random_under
+model:
+  name: random_forest
+  max_depth: 4
+  min_samples_leaf: 10

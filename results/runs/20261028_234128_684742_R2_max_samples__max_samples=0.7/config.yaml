@@ -1,0 +1,16 @@
+name: R2_max_samples__max_samples=0.7
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  max_samples: 0.7

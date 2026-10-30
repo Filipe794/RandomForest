@@ -1,0 +1,17 @@
+name: R3_tamanho__max_depth=8_min_samples_leaf=3
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: random_forest
+  max_depth: 8
+  min_samples_leaf: 3

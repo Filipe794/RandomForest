@@ -1,0 +1,18 @@
+{
+  "run_id": "20261028_234950_260752_R3_tamanho__max_depth=4_min_samples_leaf=1",
+  "name": "R3_tamanho__max_depth=4_min_samples_leaf=1",
+  "hash": "26075234cb63a7dc193c2713363fe6155e0013f1456d5139a74934783d15c4f9",
+  "date": "2026-10-28T23:49:52",
+  "train_sha256": "390e6dd64c72ec31ff122e939ca9a9bc69cabf3561c1f40a64ed2eb7451f2114",
+  "n_train": 537,
+  "seed": 42,
+  "cv": "RepeatedStratifiedKFold(5x5)",
+  "elapsed_s": 44.83,
+  "versions": {
+    "python": "3.14.7",
+    "sklearn": "1.9.1",
+    "imblearn": "0.14.2",
+    "pandas": "3.0.6",
+    "numpy": "2.5.4"
+  }
+}

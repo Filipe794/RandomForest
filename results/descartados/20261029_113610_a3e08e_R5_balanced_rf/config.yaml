@@ -1,0 +1,16 @@
+name: R5_balanced_rf
+zeros:
+  name: to_nan
+missing_flags:
+  name: none
+imputer:
+  name: median
+features:
+  name: none
+selection:
+  name: none
+balancing:
+  name: none
+model:
+  name: balanced_rf
+  n_estimators: 300
