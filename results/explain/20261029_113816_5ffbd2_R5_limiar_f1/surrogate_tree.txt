@@ -1,0 +1,22 @@
+Árvore substituta (profundidade 3): imita as previsões da floresta.
+Folhas: [n de pacientes que a floresta chama de 0, n que chama de 1]
+
+|--- Glucose <= 132.50
+|   |--- Pregnancies <= 6.50
+|   |   |--- BMI <= 40.50
+|   |   |   |--- weights: [273.00, 10.00] class: 0
+|   |   |--- BMI >  40.50
+|   |   |   |--- weights: [13.00, 10.00] class: 0
+|   |--- Pregnancies >  6.50
+|   |   |--- BMI <= 27.55
+|   |   |   |--- weights: [14.00, 0.00] class: 0
+|   |   |--- BMI >  27.55
+|   |   |   |--- weights: [24.00, 26.00] class: 1
+|--- Glucose >  132.50
+|   |--- BMI <= 29.60
+|   |   |--- Glucose <= 151.50
+|   |   |   |--- weights: [15.00, 5.00] class: 0
+|   |   |--- Glucose >  151.50
+|   |   |   |--- weights: [0.00, 16.00] class: 1
+|   |--- BMI >  29.60
+|   |   |--- weights: [0.00, 131.00] class: 1
